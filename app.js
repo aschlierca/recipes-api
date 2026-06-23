@@ -4,6 +4,7 @@ const app = express();
 
 app.use(express.json());
 
+
 let recipes = [
   { id: 1, title: "Spaghetti Carbonara", cuisine: "Italian", minutes: 25, servings: 4, vegetarian: false },
   { id: 2, title: "Chana Masala", cuisine: "Indian", minutes: 35, servings: 4, vegetarian: true },
@@ -34,6 +35,11 @@ function checkTitleCuisine(req, res, next) {
     next();
 }
 
+function errorHandler(err, req, res, next) {
+    console.error(err);
+    res.sendStatus(500);
+}
+
 app.use(logOriginalURL, logMethod);
 
 // First Route
@@ -42,71 +48,95 @@ app.get("/", (req, res) => {
 });
 
 // GET All
-app.get("/api/recipes", (req, res) => {
-    res.json(recipes);
+app.get("/api/recipes", (req, res, next) => {
+    try {
+        res.json(recipes);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // GET by Id
-app.get("/api/recipes/:id", (req, res) => {
-    const id = Number(req.params.id);
+app.get("/api/recipes/:id", (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
 
-    const recipe = recipes.find((recipe) => recipe.id === id);
+        const recipe = recipes.find((recipe) => recipe.id === id);
 
-    if (!recipe) {
-        return res.status(404).json({ message: "Recipe not found" });
+        if (!recipe) {
+            return res.status(404).json({ message: "Recipe not found" });
+        }
+
+        res.json(recipe);
+    } catch (err) {
+        next(err);
     }
-
-    res.json(recipe);
 })
 
 // POST
-app.post("/api/recipes", checkTitleCuisine, (req, res) => {
-    const { title, cuisine, minutes, servings, vegetarian } = req.body;
+app.post("/api/recipes", checkTitleCuisine, (req, res, next) => {
+    try {
+        const { title, cuisine, minutes, servings, vegetarian } = req.body;
 
-    const newRecipe = {
-        id: nextId,
-        title,
-        cuisine,
-        minutes,
-        servings,
-        vegetarian,
-    };
+        const newRecipe = {
+            id: nextId,
+            title,
+            cuisine,
+            minutes,
+            servings,
+            vegetarian,
+        };
 
-    nextId += 1;
-    recipes.push(newRecipe);
+        nextId += 1;
+        recipes.push(newRecipe);
 
-    res.status(201).json(newRecipe);
+        res.status(201).json(newRecipe);
+    } catch (err) {
+        next(err);
+    }
 });
 
 // PATCH
-app.patch("/api/recipes/:id", (req, res) => {
-    const id = Number(req.params.id);
+app.patch("/api/recipes/:id", (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
 
-    const recipe = recipes.find((recipe) => recipe.id === id);
+        const recipe = recipes.find((recipe) => recipe.id === id);
 
-    if (!recipe) {
-        return res.status(404).json({ message: "Recipe not found " });
+        if (!recipe) {
+            return res.status(404).json({ message: "Recipe not found " });
+        }
+
+        Object.assign(recipe, req.body);
+
+        res.status(200).json(recipe);
+    } catch (err) {
+        next(err);
     }
-
-    Object.assign(recipe, req.body);
-
-    res.status(200).json(recipe);
 });
 
 // DELETE
-app.delete("/api/recipes/:id", (req, res) => {
-    const id = Number(req.params.id);
+app.delete("/api/recipes/:id", (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
 
-    const recipeIndex = recipes.findIndex((recipe) => recipe.id === id);
+        const recipeIndex = recipes.findIndex((recipe) => recipe.id === id);
 
-    if (recipeIndex === -1) {
-        return res.status(404).json({ message: "Recipe not found" });
+        if (recipeIndex === -1) {
+            return res.status(404).json({ message: "Recipe not found" });
+        }
+
+        recipes.splice(recipeIndex, 1);
+
+        res.sendStatus(204);
+    } catch (err) {
+        next(err);
     }
-
-    recipes.splice(recipeIndex, 1);
-
-    res.sendStatus(204);
 });
+
+
+
+app.use(errorHandler);
 
 app.listen(8080, () => {
     console.log('Server running on port 8080');
