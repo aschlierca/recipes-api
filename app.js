@@ -14,6 +14,18 @@ let recipes = [
 
 let nextId = 6;
 
+function logOriginalURL(req, res, next) {
+    console.log('Request URL:', req.originalUrl);
+    next();
+}
+
+function logMethod(req, res, next) {
+    console.log('Request type:', req.method);
+    next();
+}
+
+app.use(logOriginalURL, logMethod);
+
 // First Route
 app.get("/", (req, res) => {
     res.send("Recipes API is running");
@@ -89,7 +101,3 @@ app.delete("/api/recipes/:id", (req, res) => {
 app.listen(8080, () => {
     console.log('Server running on port 8080');
 });
-
-
-
-
