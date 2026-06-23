@@ -24,6 +24,16 @@ function logMethod(req, res, next) {
     next();
 }
 
+function checkTitleCuisine(req, res, next) {
+    const { title, cuisine } = req.body;
+
+    if (!title || !cuisine) {
+        return res.status(400).json({ message: "Title and Cuisine required"})
+    }
+
+    next();
+}
+
 app.use(logOriginalURL, logMethod);
 
 // First Route
@@ -50,7 +60,7 @@ app.get("/api/recipes/:id", (req, res) => {
 })
 
 // POST
-app.post("/api/recipes", (req, res) => {
+app.post("/api/recipes", checkTitleCuisine, (req, res) => {
     const { title, cuisine, minutes, servings, vegetarian } = req.body;
 
     const newRecipe = {
