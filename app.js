@@ -1,26 +1,29 @@
 const express = require("express");
+const morgan = require("morgan");
 const apiRouter = require("./api");
 
 const app = express();
+app.use(morgan("dev"));
+
 
 app.use(express.json());
 
-function logOriginalURL(req, res, next) {
-    console.log('Request URL:', req.originalUrl);
-    next();
-}
+// function logOriginalURL(req, res, next) {
+//     console.log('Request URL:', req.originalUrl);
+//     next();
+// }
 
-function logMethod(req, res, next) {
-    console.log('Request type:', req.method);
-    next();
-}
+// function logMethod(req, res, next) {
+//     console.log('Request type:', req.method);
+//     next();
+// }
 
 function errorHandler(err, req, res, next) {
     console.error(err);
     res.sendStatus(500);
 }
 
-app.use(logOriginalURL, logMethod);
+// app.use(logOriginalURL, logMethod);
 
 // First Route
 app.get("/", (req, res) => {
